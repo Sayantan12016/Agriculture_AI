@@ -1,0 +1,49 @@
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
+
+# Streamlit UI
+st.title('NDVI-Based Crop Health Analysis')
+st.sidebar.header('Select Region and Crop')
+
+# Dropdowns for state and district selection
+state = st.sidebar.selectbox('State', ['Punjab', 'Maharashtra', 'Uttar Pradesh', 'Bihar'])
+district = st.sidebar.selectbox('District', ['Ludhiana','Mumbai','Haryana','Patna'])
+
+# Dropdown for crop selection
+crop = st.sidebar.selectbox('Crop', ['Wheat', 'Rice', 'Pulses', 'Sugarcane'])
+
+# Define bounding boxes for districts (example values)
+bbox_dict = {
+    'Punjab': [30.0, 74.0, 32.0, 76.0],
+    'Maharashtra': [18.0, 72.0, 22.0, 80.0],
+    'Uttar Pradesh': [24.0, 77.0, 28.0, 84.0],
+    'Bihar': [24.0, 83.0, 27.0, 88.0]
+}
+
+# Display NDVI data on map when button is clicked
+if st.sidebar.button('Analyze'):
+    bbox = bbox_dict[state]
+    center_lat = (bbox[0] + bbox[2]) / 2
+    center_lon = (bbox[1] + bbox[3]) / 2
+
+    # Create a folium map centered on the selected region
+    m = folium.Map(location=[center_lat, center_lon], zoom_start=6)
+
+    # Add Bhuvan NDVI WMS layer
+    wms_url = 'https://bhuvan.nrsc.gov.in/bhuvan/wms'
+    folium.raster_layers.WmsTileLayer(
+        url=wms_url,
+        name='NDVI',
+        layers='NDVI_Layer_Name',  # Replace with the actual layer name
+        format='image/png',
+        transparent=True
+    ).add_to(m)
+
+    # Add layer control
+    folium.LayerControl().add_to(m)
+
+    # Display the map in Streamlit
+    st_folium(m, width=700, height=500)
+
+
